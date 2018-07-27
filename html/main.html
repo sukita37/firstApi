@@ -118,8 +118,8 @@
 
       var header = $api.byId('header');
       var nav = $api.byId('nav');
-      var headerH = $api.offset('header').h;
-      var navH = $api.offset('nav').h;
+      var headerH = $api.offset(header).h;
+      var navH = $api.offset(nav).h;
 
       api.openFrameGroup ({  //打开切换页面Frames组
           name: 'mainFrameGroup',
@@ -165,6 +165,9 @@
 
     function fnSetNavMenuIndex(index_) {
       var menus = $api.domAll($api.byId('nav'), '.menu');
+      for (var i = 0; i < menus.length; i++) {
+        $api.removeCls(menus[i], 'selected');
+      }
       $api.addCls(menus[index_], 'selected');
       api.setFrameGroupIndex({
           name: 'mainFrameGroup',
