@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../css/api.css"/>
+    <style>
+      header {
+        height: 50px;
+        background-color: #e1017e;
+      }
+      header .left {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100px;
+        height: 100%;
+      }
+      header .left .arrow {
+        position: absolute;
+        bottom: 21px;
+        left: 11px;
+        width: 13px;
+        height: 8px;
+        background: url(../image/arrow_down.png) no-repeat center center;
+        background-size:  13px 8px;
+        -webkit-transition: 200ms;
+        transition: 200ms;
+      }
+      header .left .arrow.active {
+        -webkit-transform: rotate(180deg);
+        transform: rotate(180deg);
+      }
+      header .left .city {
+        z-index: 2;
+        height: 100%;
+        padding-left: 27px;
+        line-height: 50px;
+        font-size: 14px;
+        color: #fff;
+      }
+      header .center {
+        height: 100%;
+        background: url(../image/home_title.png) no-repeat center center;
+        background-size:  74px 19px;
+      }
+      header .right {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 40px;
+        height: 50px;
+        background: url(../image/home_membercenter.png) no-repeat center center;
+        background-size:  30px 30px;
+      }
+
+      nav {
+        display: -webkit-flex;
+        display: flex;
+        -webkit-box-orient: horizontal;
+        -webkit-flex-flow: row;
+        flex-flow: row;
+        height: 40px;
+        background-color: #e1017e;
+      }
+      nav .menu {
+        -webkit-box-flex: 1;
+        -webkit-flex: 1;
+        flex: 1;
+        text-align: center;
+        line-height: 40px;
+        font-size: 13px;
+        color: #f973b8;
+      }
+      nav .menu.selected {
+        font-size: 14px;
+        color: #fff;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="header">
+      <div class="left">
+        <div class="arrow" id="arrow"></div>
+        <div class="city" id="city">北京市</div>
+      </div>
+      <div class="center"></div>
+      <div class="right"></div>
+    </header>
+
+    <nav id="nav">
+      <div class="menu selected" tapmode onclick="fnSetNavMenuIndex(0)">水果</div> <!--tabmode移除点击延迟，更接近原生-->
+      <div class="menu" onclick="fnSetNavMenuIndex(1)">食材</div>
+      <div class="menu" onclick="fnSetNavMenuIndex(2)">零食</div>
+      <div class="menu" onclick="fnSetNavMenuIndex(3)">牛奶</div>
+      <div class="menu" onclick="fnSetNavMenuIndex(4)">蔬菜</div>
+    </nav>
+  </body>
+  <script type="text/javascript" src="../script/api.js"></script>
+  <script type="text/javascript">
+    var frames = [];
+    for (var i = 0; i < 5; i++) {
+      frames.push({
+        name: 'main_frame' + i,
+        url: './main_frame.html',
+        pageParam: {
+          wareTypeIndex: i
+        }
+      })
+    }
+
+    apiready = function(){
+      $api.fixStatusBar(  // 突出状态栏位置，解决系统状态栏遮挡问题
+        $api.byId('header')
+      );
+
+      var header = $api.byId('header');
+      var nav = $api.byId('nav');
+      var headerH = $api.offset('header').h;
+      var navH = $api.offset('nav').h;
+
+      api.openFrameGroup ({  //打开切换页面Frames组
+          name: 'mainFrameGroup',
+          background: '#fff',
+          scrollEnabled: true,  // 支持手势滑动切换
+          rect: {    // rect参数指定显示位置和大小
+               x: 0,
+               y: headerH + navH,
+               w: 'auto',
+               h: 'auto'
+          },
+          index: 0,  // 默认显示第一个Frame
+          frames: frames,
+          preload: frames.length // 预加载所有Frame
+      }, function(ret, err){
+          var menus = $api.domAll($api.byId('nav'), '.menu');
+          for (var i = 0; i < menus.length; i++) {
+            $api.removeCls(menus[i], 'selected');
+          }
+          $api.addCls(menus[ret.index], 'selected');
+
+      });
+
+      api.openFrame({  // 打开购物车信息Frame
+          name: 'minicart_frame',
+          url: './minicart_frame.html',
+          rect: {
+              x: 0,
+              y: api.winHeight - 55,
+              w: 150,
+              h: 34
+          },
+          bounces: false,  // 关闭弹动
+      });
+
+      api.bringFrameToFront({  // 把Frame移动到最前端
+          from: 'minicart_frame'
+      });
+
+
+
+    };
+
+    function fnSetNavMenuIndex(index_) {
+      var menus = $api.domAll($api.byId('nav'), '.menu');
+      $api.addCls(menus[index_], 'selected');
+      api.setFrameGroupIndex({
+          name: 'mainFrameGroup',
+          index: index_,
+          scroll: true
+      });
+
+    }
+  </script>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+  <html>
+  <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+      <title>title</title>
+      <link rel="stylesheet" type="text/css" href="../css/api.css"/>
+      <style>
+        header {
+          height: 130px;
+          box-sizing: border-box;
+          padding: 4px 10px;
+        }
+        header .banner {
+          width: 100%;
+          height: 100%;
+        }
+
+        section {
+          box-sizing: border-box;
+          padding: 0 8px;
+        }
+        .ware {
+          height: 145px;
+          box-sizing: border-box;
+          padding: 15px 0 15px;
+          border-bottom: 1px solid #d1d1d1;
+        }
+        .ware .thumbnail {
+          position: absolute;
+          top: 20px;
+          left: 0;
+          height: 100px;
+          width: 100px;
+        }
+        .ware .info {
+          height: 114px;
+          box-sizing: border-box;
+          padding-left: 112px;
+          padding-right: 28px;
+        }
+        .ware .info .name {
+          margin-top: 14px;
+          height: 15px;
+          color: #555;
+          font-size: 15px;
+        }
+        .ware .info .description {
+          margin-top: 10px;
+          height: 13px;
+          font-size: 13px;
+          color: #9d9d9d;
+        }
+        .ware .info .price-tag {
+          margin-top: 10px;
+          height: 12px;
+          font-size: 12px;
+          color: #9d9d9d;
+        }
+        .ware .info .price-tag .price {
+          color: #e3007f;
+        }
+        .ware .info .price-tag .unit {
+          font-size: 8px;
+          color: #cbcbcb;
+        }
+        .ware .info .origin-price {
+          margin-top: 5px;
+          height: 10px;
+          font-size: 10px;
+          color: #d3d3d3;
+        }
+        .ware .control {
+          position: absolute;
+          width: 110px;
+          height: 23px;
+          right: 8px;
+          top: 90px;
+          text-align: right;
+        }
+        .ware .control .add {
+          width: 23px;
+          height: 23px;
+        }
+
+        .push-status {
+          height: 40px;
+          font-size: 16px;
+          color: #888;
+          line-height: 40px;
+          text-align: center;
+          background-color: #fff;
+        }
+
+        .active {
+          opacity: 0.7;
+        }
+      </style>
+  </head>
+  <body>
+    <header id="header">
+      <img id="banner" class="banner" src="../image/default_rect.png" />
+    </header>
+    <section id="list">
+      <div class="content">
+        <div class="ware">
+          <img class="thumbnail" src="../image/default_square.png" />
+          <div class="info">
+            <div class="name">name</div>
+            <div class="description">description</div>
+            <div class="price-tag">
+              <span class="price">￥100</span>
+              <span class="unit">/kg</span>
+            </div>
+            <div class="origin-price">超市:
+              <del>￥110</del>
+            </div>
+          </div>
+          <div class="control">
+            <img class="add" src="../image/add.png" />
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="push-status" id="pushStatus">上拉显示更多</div>
+  </body>
+  <script type="text/javascript" src="../script/api.js"></script>
+  <script type="text/javascript">
+      apiready = function(){
+        var param = $api.jsonToStr(api.pageParam);  // api.pageParam获取传入的数据
+        $api.html($api.dom('body'), param);   // 将传入的数据赋值给页面的body元素
+
+
+      };
+  </script>
+  </html>
