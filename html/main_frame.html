@@ -125,12 +125,264 @@
     <div class="push-status" id="pushStatus">上拉显示更多</div>
   </body>
   <script type="text/javascript" src="../script/api.js"></script>
+  <script type="text/javascript" src="../script/doT.min.js"></script>
+  <script type="text/template" id="template">
+      {{~it:value:index}} {{?0 == value.showType}}
+      <div class="ware ware-0">
+          <div class="content" tapmode onclick="fnOpenWareWin('{{=value.id}}');">
+              <img onload="fnLoadImage(this)" data-url="{{=value.thumbnail.url}}" class="thumbnail" src="../image/default_rect.png">
+              <div class="info">
+                  <span class="price">{{=value.price}}</span>
+                  <span class="unit">/{{=value.unit}}</span>
+                  <span class="origin-price">&nbsp;超市:<del>{{=value.originPrice}}元</del></span>
+              </div>
+              <div class="control">
+                  <div class="panel" id="panel_{{=value.id}}">
+                      <img class="minus" src="../image/minus.png" tapmode onclick="fnMinus('{{=value.id}}');">
+                      <div class="count" id="count_{{=value.id}}">0</div>
+                  </div>
+                  <img class="add" src="../image/add.png" tapmode onclick="fnAdd('{{=value.id}}');">
+              </div>
+          </div>
+      </div>
+      {{??}}
+      <div class="ware ware-1">
+          <div class="content" tapmode onclick="fnOpenWareWin('{{=value.id}}');">
+              <img onload="fnLoadImage(this)" data-url="{{=value.thumbnail.url}}" class="thumbnail" src="../image/default_square.png">
+              <div class="info">
+                  <div class="name">{{=value.name}}</div>
+                  <div class="description">{{=value.description}}</div>
+                  <div class="price-tag">
+                      <span class="price">￥{{=value.price}}</span>
+                      <span class="unit">/{{=value.unit}}</span>
+                  </div>
+                  <div class="origin-price">超市:
+                      <del>{{=value.originPrice}}元</del>
+                  </div>
+              </div>
+              <div class="control">
+                  <div class="panel" id="panel_{{=value.id}}">
+                      <img class="minus" src="../image/minus.png" tapmode onclick="fnMinus('{{=value.id}}');">
+                      <div class="count" id="count_{{=value.id}}">0</div>
+                  </div>
+                  <img class="add" src="../image/add.png" tapmode onclick="fnAdd('{{=value.id}}');">
+              </div>
+          </div>
+      </div>
+      {{?}} {{~}}
+  </script>
   <script type="text/javascript">
       apiready = function(){
-        //var param = $api.jsonToStr(api.pageParam);  // api.pageParam获取传入的数据
-        //$api.html($api.dom('body'), param);   // 将传入的数据赋值给页面的body元素
+        // 初始化一下默认数据
+        init();
 
+        // 初始化事件监听
+        initEventListenter();
+
+        // 初始化下拉刷新
+        initRefresh();
+
+        // 更新商品Banner
+        updateBanner();
+
+        // 获取商品列表
+        fnGetWareList(false);
 
       };
+
+      var currentCity, wareTypeList, skip = 0,
+          LIMIT = 5;
+
+      function init() {
+          // 从缓存中获得城市信息
+          currentCity = $api.getStorage('currentCity');
+
+          // 从缓存中获得商品分类列表
+          wareTypeList = $api.getStorage('wareTypeList');
+      }
+
+      function initEventListenter() {
+
+          // 监听滚动到Frame底部的事件(上拉加载）
+          api.addEventListener({
+              name: 'scrolltobottom',
+              extra: {
+                  threshold: 300 // 距离底部还有多少触发scrolltobottom事件
+              }
+          }, function(ret, err) {
+              // 获取更多的商品
+              fnGetWareList(true);
+          });
+
+          // 监听城市切换事件(自定义事件)，重新加载商品列表
+          api.addEventListener({
+              name: 'cityChange'
+          }, function(ret, err) {
+              if (ret) {
+                  if (ret.value) {
+                      // 更新当前城市信息
+                      currentCity = ret.value.currentCity;
+                      // 更新商品列表
+                      fnGetWareList(false);
+                  }
+              }
+          });
+
+          // 监听购物车更新事件(自定义事件)，同步更新列表展示中选定商品的数量
+          api.addEventListener({
+              name: 'updateShoppingCart'
+          }, function(ret, err) {
+              if (ret) {
+                  if (ret.value) {
+                      // 获取相应商品元素的信息
+                      var count = $api.byId('count_' + ret.value.wareId);
+                      var panel = $api.byId('panel_' + ret.value.wareId);
+                      if (count && panel) {
+                          // 更新商品数量及显示状态
+                          count.innerHTML = ret.value.wareCount;
+                          panel.style.display = (ret.value.wareCount > 0) ? 'block' : 'none';
+                      }
+                  }
+              }
+          });
+      }
+
+      // 实现下拉刷新功能
+      function initRefresh() {
+          api.setRefreshHeaderInfo({
+              visible: true,
+              loadingImg: 'widget://image/refresh.png',
+              bgColor: '#fff',
+              textColor: '#e1017e',
+              showTime: true
+          }, function(ret, err) {
+              // 刷新商品列表
+              fnGetWareList(false);
+          });
+      }
+
+      // 更新商品Banner
+      function updateBanner() {
+          var banner = $api.byId('banner');
+          // 实现Banner的图片缓存
+          api.imageCache({
+              url: wareTypeList[api.pageParam.wareTypeIndex].banner.url
+          }, function(ret, err) {
+              if (ret) {
+                  if (ret && ret.status) {
+                      banner.src = ret.url;
+                  }
+              }
+          });
+      }
+
+      // 获取商品列表，通过loadMore_参数区分是首次加载还是加载更多
+      function fnGetWareList(loadMore_) {
+          if (!loadMore_) {
+              // 显示加载状态对话框
+              api.showProgress({
+                  style: 'default',
+                  animationType: 'fade',
+                  title: '努力加载中...',
+                  text: '请稍后...',
+                  modal: false
+              });
+          }
+
+          // 如果是加载更多，需要实现分页
+          if (loadMore_) {
+              skip += LIMIT;
+          } else {
+              skip = 0;
+          }
+
+          // 根据城市和商品分类获得相应的商品列表
+          var params = {
+              fields: {},
+              where: {
+                  supportAreaId: currentCity.id,
+                  wareTypeId: wareTypeList[api.pageParam.wareTypeIndex].id
+              },
+              skip: skip,
+              limit: LIMIT
+          }
+          params = $api.jsonToStr(params);
+          api.ajax({
+              url: 'http://d.apicloud.com/mcm/api/ware?filter=' + params,
+              method: 'get',
+              headers: {
+                  "X-APICloud-AppId": api.appId,
+                  "X-APICloud-AppKey": 'ea748d4ba21a3c5f861dbade4b98adacf7fa5b6c.1524848071825'
+              }
+          }, function(ret, err) {
+              console.log('ret=='+JSON.stringify(ret)+'____err=='+JSON.stringify(err));
+              if (ret) {
+                  // 恢复下拉刷新的状态
+                  api.refreshHeaderLoadDone();
+
+                  // 在界面中更新商品列表显示
+                  fnUpdateWareList(ret, loadMore_);
+              } else {
+                  api.toast({
+                      msg: '加载数据失败',
+                      duration: 2000,
+                      location: 'bottom'
+                  });
+              }
+
+              // 隐藏加载状态对话框
+              api.hideProgress();
+          });
+      }
+
+      // 实现商品列表的图片缓存
+      function fnLoadImage(ele_) {
+          var dataUrl = $api.attr(ele_, 'data-url');
+
+          // 缓存data-url所指定的图片
+          if (dataUrl) {
+              api.imageCache({
+                  url: dataUrl
+              }, function(ret, err) {
+                  if (ret) {
+                      ele_.src = ret.url;
+                      $api.attr(ele_, 'data-url', '');
+                  }
+              });
+          }
+      }
+
+      // 更新商品列表显示
+      function fnUpdateWareList(data_, loadMore_) {
+
+          var list = $api.byId('list');
+
+          // 编译模板函数
+          var tempFn = doT.template($api.byId('template').innerHTML);
+
+          // 使用模板函数生成HTML文本
+          var resultHTML = tempFn(data_);
+
+          // 判断是否是加载更多，如果是加载更多，则追加到list中
+          if (loadMore_) {
+              $api.append(list, resultHTML);
+              // 如果服务器端已经没有更多数据返回，更新提示信息
+              if (data_.length < LIMIT) {
+                  var pushStatus = $api.byId('pushStatus');
+                  pushStatus.innerHTML = "没有啦！";
+              }
+          } else {
+              // 否则，直接替换list中的内容
+              $api.html(list, resultHTML);
+              updateBanner();
+          }
+
+          // 由于是动态的将元素添加到Dom树上，所以需要手动触发tapmode检查，列表中的元素才能实现点击加速的效果
+          api.parseTapmode();
+
+          // 如果商品已存在购物成中，显示商品在购物成中的数量
+          //fnShowWareCountInShoppingCart(data_);
+      }
+
   </script>
   </html>
