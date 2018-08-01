@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+  <html>
+  <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+      <title>title</title>
+      <link rel="stylesheet" type="text/css" href="../css/api.css"/>
+      <style>
+          body{
+
+          }
+      </style>
+  </head>
+  <body>
+    <header>
+        <div class="icon-panel" tapmode onclick="fnSetAvatar()">
+            <div id="icon" class="icon"></div>
+        </div>
+        <div id="username" class="username">broad</div>
+        <div class="account-info">积分：0 <span class="separator">|</span>余额：￥0</div>
+    </header>
+    <section>
+        <div class="option" tapmode onclick="fnOpenMyOrderWin();">
+            <div class="icon icon-myorder"></div>
+            <div class="title">我的订单</div>
+            <div class="arrow-panel">
+                <div class="text">查看所有订单详情</div>
+            </div>
+        </div>
+        <div class="option" tapmode onclick="fnOpenAccountWin();">
+            <div class="icon icon-account"></div>
+            <div class="title">我的账户</div>
+            <div class="arrow-panel">
+                <div class="text">充值有礼</div>
+            </div>
+        </div>
+        <div class="option" tapmode onclick="fnOpenCouponWin();">
+            <div class="icon icon-coupon"></div>
+            <div class="title">优惠卷</div>
+            <div class="arrow-panel">
+                <div class="text">查看我的优惠卷</div>
+            </div>
+        </div>
+        <div class="option" tapmode onclick="fnOpenAddressWin();">
+            <div class="icon icon-address"></div>
+            <div class="title">收货地址</div>
+            <div class="arrow-panel">
+                <div class="text">管理我的收货地址</div>
+            </div>
+        </div>
+    </section>
+  </body>
+  <script type="text/javascript" src="../script/api.js"></script>
+  <script type="text/javascript">
+    apiready = function(){
+      getUserInfo();
+    };
+
+    // 获取个人信息
+    function getUserInfo() {
+        var userInfo = $api.getStorage('userInfo');
+        api.ajax({
+            url: 'https://d.apicloud.com/mcm/api/user/' + userInfo.userId,
+            method: 'get',
+            headers: {
+                "X-APICloud-AppId": api.appId,
+                "X-APICloud-AppKey": 'ea748d4ba21a3c5f861dbade4b98adacf7fa5b6c.1524848071825',
+                "Authorization": userInfo.id
+            }
+        }, function(ret, err) {
+            if (ret) {
+                fnUpdateLocalAvatar(ret);
+            } else {
+                alert(JSON.stringify(err));
+            }
+        });
+    }
+
+    // 更新头像显示
+    function fnUpdateLocalAvatar(data_) {
+        if (!data_.avatar) {
+            return;
+        }
+
+        // 缓存头像
+        var icon = $api.byId('icon');
+        api.imageCache({
+            url: data_.avatar.url
+        }, function(ret, err) {
+            if (ret) {
+                icon.style.backgroundImage = 'url(' + ret.url + ')';
+            } else {
+                api.toast({
+                    msg: '获取头像失败',
+                    duration: 2000,
+                    location: 'bottom'
+                });
+            }
+        });
+    }
+
+    // 选择头像
+    function fnSetAvatar() {
+        api.actionSheet({
+            title: '选择',
+            cancelTitle: '取消',
+            buttons: ['拍照', '相册']
+        }, function(ret, err) {
+            if (ret) {
+                var sourceTypes = [
+                    'camera',
+                    'album'
+                ];
+                if (ret.buttonIndex == (sourceTypes.length + 1)) {
+                    return;
+                }
+                api.getPicture({
+                    sourceType: sourceTypes[ret.buttonIndex - 1],
+                    allowEdit: true,
+                    quality: 50, // 指定图片质量
+                    targetWidth: 100, // 指定图片宽度
+                    targetHeight: 100 // 指定图片宽度
+                }, function(ret, err) {
+                    if (ret) {
+                        fnUploadAtavar(ret.data);
+                    }
+                });
+            }
+        });
+    }
+
+    // 上传头像文件
+    function fnUploadAtavar(avatarUrl_) {
+        api.ajax({
+            url: 'https://d.apicloud.com/mcm/api/file',
+            method: 'post',
+            headers: {
+                "X-APICloud-AppId": api.appId,
+                "X-APICloud-AppKey": 'ea748d4ba21a3c5f861dbade4b98adacf7fa5b6c.1524848071825'
+            },
+            data: {
+                values: {
+                    filename: 'icon'
+                },
+                files: {
+                    file: avatarUrl_
+                }
+            }
+        }, function(ret, err) {
+            if (ret) {
+                fnUpdateUserAtavar(ret);
+            } else {
+                alert(JSON.stringify(err));
+            }
+        });
+    }
+
+    // 更新用户头像
+    function fnUpdateUserAtavar(avatar_) {
+        var userInfo = $api.getStorage('userInfo');
+        api.ajax({
+            url: 'https://d.apicloud.com/mcm/api/user/' + userInfo.userId,
+            method: 'put',
+            headers: {
+                "X-APICloud-AppId": api.appId,
+                "X-APICloud-AppKey": 'ea748d4ba21a3c5f861dbade4b98adacf7fa5b6c.1524848071825',
+                "Authorization": userInfo.id
+            },
+            data: {
+                values: {
+                    avatar: avatar_
+                }
+            }
+        }, function(ret, err) {
+            if (ret) {
+                fnUpdateLocalAvatar(ret);
+            } else {
+                alert(JSON.stringify(err));
+            }
+        });
+    }
+
+    // 打开我的订单Window
+    function fnOpenMyOrderWin() {
+        api.openWin({
+            name: 'myorder',
+            url: './myorder.html'
+        });
+    }
+
+    // 打开我的账户Window
+    function fnOpenAccountWin() {
+        api.openWin({
+            name: 'account',
+            url: './account.html'
+        });
+    }
+
+    // 打开我的优惠券Window
+    function fnOpenCouponWin() {
+        api.openWin({
+            name: 'coupon',
+            url: './coupon.html'
+        });
+    }
+
+    // 打开收货地址Window
+    function fnOpenAddressWin() {
+        api.openWin({
+            name: 'address',
+            url: './address.html'
+        });
+    }
+  </script>
+  </html>
