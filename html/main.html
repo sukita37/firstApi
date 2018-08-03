@@ -270,26 +270,6 @@
 
       }
 
-<<<<<<< HEAD
-    };
-
-    function fnSetNavMenuIndex(index_) {
-      var menus = $api.domAll($api.byId('nav'), '.menu');
-      for (var i = 0; i < menus.length; i++) {
-        $api.removeCls(menus[i], 'selected');
-      }
-      $api.addCls(menus[index_], 'selected');
-      api.setFrameGroupIndex({
-          name: 'mainFrameGroup',
-          index: index_,
-          scroll: true
-=======
-      api.openWin({
-          name: 'personalcenter',
-          url: './login.html'
->>>>>>> 481a82fb2b4406747cd4f86eb2e41d201e6ff808
-      });
-
     }
     // 初始化事件监听
     function initEventListenner() {

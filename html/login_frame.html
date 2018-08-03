@@ -227,7 +227,7 @@
       }
 
       api.ajax({
-          url: 'http://d.apicloud.com/mcm/api/user/login',
+          url: 'http://www.chinawateronline.com:99/InnerUserService.asmx?op=GetUser',
           method: 'post',
           headers: {
               "X-APICloud-AppId": api.appId,
@@ -241,6 +241,7 @@
           }
       }, function(ret, err) {
           if (ret) {
+            alert(JSON.stringify(ret))
               // 保存用户信息
               $api.setStorage('userInfo', ret);
 
@@ -259,6 +260,7 @@
                   location: 'middle'
               });
           }
+          if(err) alert(JSON.stringify(err))
       });
     }
   </script>

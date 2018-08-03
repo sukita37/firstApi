@@ -3,7 +3,7 @@
   <head>
       <meta charset="utf-8">
       <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
-      <title>title</title>
+      <title>我的设备列表</title>
       <link rel="stylesheet" type="text/css" href="../css/api.css"/>
       <style>
         header {
@@ -51,36 +51,24 @@
           font-size: 13px;
           color: #9d9d9d;
         }
-        .ware .info .price-tag {
+        .ware .info .pressure {
+          display: -webkit-box;
+          display: -webkit-flex;
+          display: flex;
+        }
+        .ware .info .pressure-tag {
+          width: 50%;
           margin-top: 10px;
           height: 12px;
           font-size: 12px;
           color: #9d9d9d;
         }
-        .ware .info .price-tag .price {
+        .ware .info .pressure-tag .value {
           color: #e3007f;
         }
-        .ware .info .price-tag .unit {
+        .ware .info .pressure-tag .unit {
           font-size: 8px;
           color: #cbcbcb;
-        }
-        .ware .info .origin-price {
-          margin-top: 5px;
-          height: 10px;
-          font-size: 10px;
-          color: #d3d3d3;
-        }
-        .ware .control {
-          position: absolute;
-          width: 110px;
-          height: 23px;
-          right: 8px;
-          top: 90px;
-          text-align: right;
-        }
-        .ware .control .add {
-          width: 23px;
-          height: 23px;
         }
 
         .push-status {
@@ -102,74 +90,35 @@
       <img id="banner" class="banner" src="../image/default_rect.png" />
     </header>
     <section id="list">
-      <div class="content">
-        <div class="ware">
-          <img class="thumbnail" src="../image/default_square.png" />
-          <div class="info">
-            <div class="name">name</div>
-            <div class="description">description</div>
-            <div class="price-tag">
-              <span class="price">￥100</span>
-              <span class="unit">/kg</span>
-            </div>
-            <div class="origin-price">超市:
-              <del>￥110</del>
-            </div>
-          </div>
-          <div class="control">
-            <img class="add" src="../image/add.png" />
-          </div>
-        </div>
-      </div>
+      
     </section>
     <div class="push-status" id="pushStatus">上拉显示更多</div>
   </body>
   <script type="text/javascript" src="../script/api.js"></script>
   <script type="text/javascript" src="../script/doT.min.js"></script>
   <script type="text/template" id="template">
-      {{~it:value:index}} {{?0 == value.showType}}
+      {{~it:value:index}}
       <div class="ware ware-0">
           <div class="content" tapmode onclick="fnOpenWareWin('{{=value.id}}');">
               <img onload="fnLoadImage(this)" data-url="{{=value.thumbnail.url}}" class="thumbnail" src="../image/default_rect.png">
               <div class="info">
-                  <span class="price">{{=value.price}}</span>
-                  <span class="unit">/{{=value.unit}}</span>
-                  <span class="origin-price">&nbsp;超市:<del>{{=value.originPrice}}元</del></span>
-              </div>
-              <div class="control">
-                  <div class="panel" id="panel_{{=value.id}}">
-                      <img class="minus" src="../image/minus.png" tapmode onclick="fnMinus('{{=value.id}}');">
-                      <div class="count" id="count_{{=value.id}}">0</div>
+                <div class="name">{{=value.name}}</div>
+                <div class="description">设备型号：{{=value.deviceNo}}</div>
+                <div class="pressure">
+                  <div class="pressure-tag">
+                    <span class="code">进口压力：</span>
+                    <span class="value">{{=value.inPressure}}</span>
+                    <span class="unit">Mpa</span>
                   </div>
-                  <img class="add" src="../image/add.png" tapmode onclick="fnAdd('{{=value.id}}');">
-              </div>
+                  <div class="pressure-tag">
+                    <span class="code">进口压力：</span>
+                    <span class="value">{{=value.outPressure}}</span>
+                    <span class="unit">Mpa</span>
+                  </div>
+                </div>
           </div>
       </div>
-      {{??}}
-      <div class="ware ware-1">
-          <div class="content" tapmode onclick="fnOpenWareWin('{{=value.id}}');">
-              <img onload="fnLoadImage(this)" data-url="{{=value.thumbnail.url}}" class="thumbnail" src="../image/default_square.png">
-              <div class="info">
-                  <div class="name">{{=value.name}}</div>
-                  <div class="description">{{=value.description}}</div>
-                  <div class="price-tag">
-                      <span class="price">￥{{=value.price}}</span>
-                      <span class="unit">/{{=value.unit}}</span>
-                  </div>
-                  <div class="origin-price">超市:
-                      <del>{{=value.originPrice}}元</del>
-                  </div>
-              </div>
-              <div class="control">
-                  <div class="panel" id="panel_{{=value.id}}">
-                      <img class="minus" src="../image/minus.png" tapmode onclick="fnMinus('{{=value.id}}');">
-                      <div class="count" id="count_{{=value.id}}">0</div>
-                  </div>
-                  <img class="add" src="../image/add.png" tapmode onclick="fnAdd('{{=value.id}}');">
-              </div>
-          </div>
-      </div>
-      {{?}} {{~}}
+      {{~}}
   </script>
   <script type="text/javascript">
       apiready = function(){
@@ -265,15 +214,15 @@
       function updateBanner() {
           var banner = $api.byId('banner');
           // 实现Banner的图片缓存
-          api.imageCache({
-              url: wareTypeList[api.pageParam.wareTypeIndex].banner.url
-          }, function(ret, err) {
-              if (ret) {
-                  if (ret && ret.status) {
-                      banner.src = ret.url;
-                  }
-              }
-          });
+          // api.imageCache({
+          //     url: wareTypeList[api.pageParam.wareTypeIndex].banner.url
+          // }, function(ret, err) {
+          //     if (ret) {
+          //         if (ret && ret.status) {
+          //             banner.src = ret.url;
+          //         }
+          //     }
+          // });
       }
 
       // 获取商品列表，通过loadMore_参数区分是首次加载还是加载更多
@@ -301,7 +250,7 @@
               fields: {},
               where: {
                   supportAreaId: currentCity.id,
-                  wareTypeId: wareTypeList[api.pageParam.wareTypeIndex].id
+                  // wareTypeId: wareTypeList[api.pageParam.wareTypeIndex].id
               },
               skip: skip,
               limit: LIMIT
@@ -319,6 +268,16 @@
               if (ret) {
                   // 恢复下拉刷新的状态
                   api.refreshHeaderLoadDone();
+
+                  ret = [{
+                    name: '绿地国际',
+                    no: '18251200',
+                    inPressure: '0.2',
+                    outPressure: '0.7',
+                    thumbnail: {
+                      url: ''
+                    }
+                  }];
 
                   // 在界面中更新商品列表显示
                   fnUpdateWareList(ret, loadMore_);
@@ -362,7 +321,7 @@
 
           // 使用模板函数生成HTML文本
           var resultHTML = tempFn(data_);
-
+          alert(JSON.stringify(data_))
           // 判断是否是加载更多，如果是加载更多，则追加到list中
           if (loadMore_) {
               $api.append(list, resultHTML);
